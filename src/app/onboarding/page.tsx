@@ -1,48 +1,20 @@
-// app/onboarding/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar, { OnboardingStep } from '@/components/layouts/Sidebar';
-import PersonalInformationForm from '@/components/onboarding/PersonalInformationForm';
-import EducationForm from '@/components/onboarding/EducationForm';
-import WorkExperienceForm from '@/components/onboarding/WorkExperienceForm';
-import ComplianceForm from '@/components/onboarding/ComplianceForm';
-import JobRolesForm from '@/components/onboarding/JobRolesForm';
+import PersonalInformationForm, { PersonalInformationData } from '@/components/onboarding/PersonalInformationForm';
+import EducationForm, { EducationFormData, Education } from '@/components/onboarding/EducationForm';
+import WorkExperienceForm, { WorkExperienceFormData, WorkExperience } from '@/components/onboarding/WorkExperienceForm';
+import ComplianceForm, { ComplianceFormData } from '@/components/onboarding/ComplianceForm';
 import ResumeUploadForm from '@/components/onboarding/ResumeUploadForm';
 
 // Define the data structure for all form components
 interface OnboardingData {
-  personal: {
-    fullName: string;
-    companyName: string;
-    businessEmail: string;
-    phoneNumber: string;
-    address: string;
-  };
-  education: {
-    educationLevel: string;
-    preferredDegrees: string;
-  };
-  workExperience: {
-    jobTitle: string;
-    company: string;
-    duration: string;
-    description: string;
-  };
-  compliance: {
-    visaStatus: string;
-    clearanceRequired: string;
-    preferredStartDate: string;
-    salaryRange: string;
-    disability: string;
-    race: string;
-  };
-  jobRoles: {
-    jobRoles: string;
-    skills: string;
-    experienceRange: string;
-  };
+  personal: PersonalInformationData;
+  education: EducationFormData;
+  workExperience: WorkExperienceFormData;
+  compliance: ComplianceFormData;
   resume: File | null;
 }
 
@@ -51,7 +23,6 @@ const STEPS_ORDER: OnboardingStep[] = [
   'personal',
   'education',
   'work-experience',
-  'job-roles',
   'compliance',
   'resume'
 ];
@@ -65,24 +36,48 @@ export default function OnboardingPage() {
     (searchParams?.get('step') as OnboardingStep) || 'personal'
   );
   
-  // Initialize form data
+  // Generate a unique ID for new entries
+  function generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  }
+  
+  // Initialize form data with proper types
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     personal: {
-      fullName: '',
-      companyName: '',
-      businessEmail: '',
-      phoneNumber: '',
-      address: ''
+      firstName: '',
+      lastName: '',
+      city: '',
+      state: '',
+      country: 'US',
+      roles: [],
+      skills: '',
+      websiteUrl: '',
+      linkedinUrl: '',
+      githubUrl: ''
     },
     education: {
-      educationLevel: '',
-      preferredDegrees: ''
+      educationList: [{
+        id: generateId(),
+        university: '',
+        graduationMonth: '',
+        graduationYear: '',
+        degree: '',
+        major: '',
+        cgpa: ''
+      }]
     },
     workExperience: {
-      jobTitle: '',
-      company: '',
-      duration: '',
-      description: ''
+      workExperienceList: [{
+        id: generateId(),
+        jobTitle: '',
+        company: '',
+        startMonth: '',
+        startYear: '',
+        endMonth: '',
+        endYear: '',
+        currentlyWorking: false,
+        description: ''
+      }]
     },
     compliance: {
       visaStatus: '',
@@ -90,12 +85,10 @@ export default function OnboardingPage() {
       preferredStartDate: '',
       salaryRange: '',
       disability: '',
-      race: ''
-    },
-    jobRoles: {
-      jobRoles: '',
-      skills: '',
-      experienceRange: ''
+      race: '',
+      veteranStatus: '',
+      gender: '',
+      jobTypes: []
     },
     resume: null
   });
@@ -120,7 +113,7 @@ export default function OnboardingPage() {
   
   // Handle step navigation
   const goToStep = (step: OnboardingStep) => {
-    // Check if step is accessible (i.e., previous steps are completed or it's the current step)
+    // Check if step is accessible (previous steps are completed or it's the current step)
     const currentStepIndex = STEPS_ORDER.indexOf(currentStep);
     const targetStepIndex = STEPS_ORDER.indexOf(step);
     
@@ -141,31 +134,25 @@ export default function OnboardingPage() {
   };
   
   // Handle form submissions
-  const handlePersonalSubmit = (data: any) => {
+  const handlePersonalSubmit = (data: PersonalInformationData) => {
     setOnboardingData(prev => ({ ...prev, personal: data }));
     setCompletedSteps(prev => new Set(prev).add('personal'));
     goToNextStep();
   };
   
-  const handleEducationSubmit = (data: any) => {
+  const handleEducationSubmit = (data: EducationFormData) => {
     setOnboardingData(prev => ({ ...prev, education: data }));
     setCompletedSteps(prev => new Set(prev).add('education'));
     goToNextStep();
   };
   
-  const handleWorkExperienceSubmit = (data: any) => {
+  const handleWorkExperienceSubmit = (data: WorkExperienceFormData) => {
     setOnboardingData(prev => ({ ...prev, workExperience: data }));
     setCompletedSteps(prev => new Set(prev).add('work-experience'));
     goToNextStep();
   };
   
-  const handleJobRolesSubmit = (data: any) => {
-    setOnboardingData(prev => ({ ...prev, jobRoles: data }));
-    setCompletedSteps(prev => new Set(prev).add('job-roles'));
-    goToNextStep();
-  };
-  
-  const handleComplianceSubmit = (data: any) => {
+  const handleComplianceSubmit = (data: ComplianceFormData) => {
     setOnboardingData(prev => ({ ...prev, compliance: data }));
     setCompletedSteps(prev => new Set(prev).add('compliance'));
     goToNextStep();
@@ -193,7 +180,6 @@ export default function OnboardingPage() {
       formData.append('educationInfo', JSON.stringify(onboardingData.education));
       formData.append('workExperience', JSON.stringify(onboardingData.workExperience));
       formData.append('compliance', JSON.stringify(onboardingData.compliance));
-      formData.append('jobRoles', JSON.stringify(onboardingData.jobRoles));
       
       // Add resume file if exists
       if (onboardingData.resume) {
@@ -245,13 +231,6 @@ export default function OnboardingPage() {
           <WorkExperienceForm
             initialData={onboardingData.workExperience}
             onSubmit={handleWorkExperienceSubmit}
-          />
-        );
-      case 'job-roles':
-        return (
-          <JobRolesForm
-            initialData={onboardingData.jobRoles}
-            onSubmit={handleJobRolesSubmit}
           />
         );
       case 'compliance':

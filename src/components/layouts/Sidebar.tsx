@@ -72,8 +72,8 @@ export default function Sidebar({
     { id: 'personal', label: 'Personal Information' },
     { id: 'education', label: 'Education' },
     { id: 'work-experience', label: 'Work Experience' },
-    { id: 'job-roles', label: 'Job Roles & Skills' },
-    { id: 'compliance', label: 'Compliance & Preferences' },
+    // { id: 'job-roles', label: 'Job Roles & Skills' },
+    { id: 'compliance', label: 'Preferences' },
     { id: 'resume', label: 'Upload Resume' }
   ];
 
